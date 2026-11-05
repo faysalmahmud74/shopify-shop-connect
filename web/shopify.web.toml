@@ -1,0 +1,6 @@
+# The CLI dev proxy only routes "/" to a web process that has the "frontend" role.
+# This app has no UI, but Laravel must still receive the install/OAuth redirect, so it takes both roles.
+roles = ["frontend", "backend"]
+
+[commands]
+dev = "composer serve"
