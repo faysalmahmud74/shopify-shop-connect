@@ -66,5 +66,9 @@ class Kernel extends HttpKernel
 
         'shopify.auth' => \App\Http\Middleware\EnsureShopifySession::class,
         'shopify.installed' => \App\Http\Middleware\EnsureShopifyInstalled::class,
+
+        // Bridge API (routes/api.php)
+        'api.key' => \App\Http\Middleware\AuthenticateApiKey::class,
+        'api.shop' => \App\Http\Middleware\ResolveShop::class,
     ];
 }
