@@ -3,4 +3,5 @@
 roles = ["frontend", "backend"]
 
 [commands]
-dev = "composer serve"
+# dev.php starts `php artisan serve` and opens Swagger UI (/docs) in the browser.
+dev = "php dev.php"

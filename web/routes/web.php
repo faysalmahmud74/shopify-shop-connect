@@ -45,6 +45,11 @@ Route::get('/', function (Request $request) {
     return response()->json(['app' => config('app.name'), 'status' => 'ok']);
 });
 
+// Swagger UI for public/openapi.yaml
+Route::get('/docs', function () {
+    return view('docs');
+});
+
 Route::get('/api/auth', function (Request $request) {
     $shop = Utils::sanitizeShopDomain($request->query('shop'));
 

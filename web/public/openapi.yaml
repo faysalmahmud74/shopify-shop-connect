@@ -1,0 +1,141 @@
+openapi: 3.0.3
+info:
+  title: Aero Shop Connect API
+  version: 0.1.0
+  description: |
+    API-only bridge to the Shopify Admin GraphQL API.
+    A caller authenticates with a bearer key; the app then queries Shopify using the stored token of the
+    installed shop.
+servers:
+  - url: /
+    description: Same host that serves this page
+security:
+  - bearerAuth: []
+tags:
+  - name: Bridge
+    description: Endpoints that proxy Shopify data
+  - name: Health
+    description: Liveness
+paths:
+  /api:
+    get:
+      tags: [Health]
+      summary: Health check
+      security: []
+      responses:
+        "200":
+          description: App is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /api/v1/products:
+    get:
+      tags: [Bridge]
+      summary: List products of an installed shop
+      description: |
+        Runs a GraphQL `products` query against the shop's Admin API.
+        If `shop` is omitted it is only accepted when exactly one shop has installed the app.
+      parameters:
+        - name: shop
+          in: query
+          required: false
+          description: Installed shop domain.
+          schema:
+            type: string
+            example: faysal-devstore.myshopify.com
+        - name: first
+          in: query
+          required: false
+          description: Number of products to return (1 to 50).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        "200":
+          description: Products of the shop
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shop:
+                    type: string
+                    example: faysal-devstore.myshopify.com
+                  products:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+        "401":
+          description: Missing or invalid bearer key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: Unauthorized
+        "404":
+          description: The given shop has not installed the app
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: Shop not installed
+        "422":
+          description: "`shop` is required when zero or several shops are installed"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Pass ?shop=<domain>; 2 shops installed"
+        "502":
+          description: Shopify rejected the request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Shopify request failed
+                  details:
+                    nullable: true
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: The value of BRIDGE_API_KEY from web/.env (test key).
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          example: gid://shopify/Product/7675331313763
+        title:
+          type: string
+          example: Short Sleeve T-shirt
+        handle:
+          type: string
+          example: short-sleeve-t-shirt
+        status:
+          type: string
+          enum: [ACTIVE, ARCHIVED, DRAFT]
+          example: ACTIVE
+        totalInventory:
+          type: integer
+          example: 12
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
