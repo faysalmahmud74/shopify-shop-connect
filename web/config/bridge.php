@@ -4,14 +4,13 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Bridge API key
+    | Rate limit
     |--------------------------------------------------------------------------
     |
-    | Static bearer key accepted by the `api.key` middleware. This is a test
-    | shortcut; replace it with per-client keys (tied to a shop) before
-    | exposing the API to real consumers.
+    | Maximum requests per minute for each API key (see App\Http\Middleware\AuthenticateApiKey).
+    | API keys themselves live in the `api_keys` table; manage them with the apikey:* artisan commands.
     |
     */
-    'api_key' => env('BRIDGE_API_KEY'),
+    'rate_limit_per_minute' => (int) env('BRIDGE_RATE_LIMIT', 60),
 
 ];

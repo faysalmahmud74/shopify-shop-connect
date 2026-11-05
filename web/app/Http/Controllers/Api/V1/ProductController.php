@@ -10,9 +10,9 @@ use Illuminate\Http\Request;
 class ProductController extends Controller
 {
     /**
-     * GET /api/v1/products?shop=&first=
+     * GET /api/v1/products?first=
      *
-     * The shop session is resolved by the `api.shop` middleware.
+     * The shop is the one the API key belongs to (resolved by the `api.shop` middleware).
      */
     public function index(Request $request): JsonResponse
     {

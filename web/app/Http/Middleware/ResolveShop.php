@@ -2,19 +2,18 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ApiKey;
 use App\Models\Session;
 use Closure;
 use Illuminate\Http\Request;
-use Shopify\Utils;
 
 class ResolveShop
 {
     /**
-     * Resolves which installed shop the request is for and stores its offline session on the request
+     * Loads the offline session of the shop the API key belongs to and stores it on the request
      * (attribute `shopSession`).
      *
-     * The shop comes from the `shop` query parameter. It may be omitted only when exactly one shop has
-     * installed the app.
+     * The shop is decided by the key alone; callers cannot choose another shop. Must run after `api.key`.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure  $next
@@ -22,21 +21,16 @@ class ResolveShop
      */
     public function handle(Request $request, Closure $next)
     {
-        $installed = Session::whereNotNull('access_token')->where('is_online', 0);
+        /** @var ApiKey $key */
+        $key = $request->attributes->get('apiKey');
 
-        if ($request->query('shop')) {
-            $shop = Utils::sanitizeShopDomain($request->query('shop'));
-            $session = $shop ? $installed->where('shop', $shop)->first() : null;
+        $session = Session::where('shop', $key->shop)
+            ->whereNotNull('access_token')
+            ->where('is_online', 0)
+            ->first();
 
-            if (!$session) {
-                return response()->json(['error' => 'Shop not installed'], 404);
-            }
-        } else {
-            $count = $installed->count();
-            if ($count !== 1) {
-                return response()->json(['error' => "Pass ?shop=<domain>; $count shops installed"], 422);
-            }
-            $session = $installed->first();
+        if (!$session) {
+            return response()->json(['error' => 'Shop not installed'], 403);
         }
 
         $request->attributes->set('shopSession', $session);

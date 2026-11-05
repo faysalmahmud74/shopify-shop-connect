@@ -69,6 +69,7 @@ class Kernel extends HttpKernel
 
         // Bridge API (routes/api.php)
         'api.key' => \App\Http\Middleware\AuthenticateApiKey::class,
+        'api.can' => \App\Http\Middleware\EnsureApiAbility::class,
         'api.shop' => \App\Http\Middleware\ResolveShop::class,
     ];
 }

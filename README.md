@@ -48,3 +48,23 @@ npm run dev
 
 - The template pins Laravel 8 and `shopify/shopify-api` v6 (both abandoned/EOL); upgrade before production.
 - Scopes live in `shopify.app.toml` (`write_products` by default).
+
+## API keys (`/api/v1/*`)
+
+Each client gets its own key, tied to one shop, stored only as a SHA-256 hash in the `api_keys` table. The shop is
+decided by the key, so callers cannot read another shop. Keys have abilities (`products:read`), an optional expiry and
+can be revoked; requests are rate limited per key (`BRIDGE_RATE_LIMIT`, default 60/min). Revoking happens automatically
+when the shop uninstalls the app.
+
+```sh
+php artisan apikey:create my-store.myshopify.com --name="Acme ERP" --expires=90   # prints the key once
+php artisan apikey:list
+php artisan apikey:revoke 3
+```
+
+```sh
+curl -H "Authorization: Bearer sk_live_xxxxxxxx_..." "https://<host>/api/v1/products?first=5"
+```
+
+Responses: `401` bad/expired/revoked key, `403` missing ability or shop uninstalled, `429` rate limited.
+Docs: `/docs` (Swagger UI) and `/openapi.yaml`.
